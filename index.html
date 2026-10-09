@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="id" class="h-full bg-slate-100">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Invoice Optik - Upgrade Photochromic & Night Drive</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#f0f7ff',
+                            100: '#e0effe',
+                            500: '#0284c7',
+                            600: '#0369a1',
+                            700: '#075985',
+                            900: '#0c4a6e',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Touch target sizing & smooth inputs */
+        input[type="text"], input[type="number"], select {
+            font-size: 16px !important; /* Prevents auto-zoom on iOS */
+        }
+        
+        /* Print styles optimization */
+        @media print {
+            .no-print {
+                display: none !important;
+            }
+            body {
+                background-color: #ffffff !important;
+                color: #0f172a !important;
+                padding: 0 !important;
+                margin: 0 !important;
+            }
+            .print-card {
+                box-shadow: none !important;
+                border: none !important;
+                max-width: 100% !important;
+                width: 100% !important;
+                padding: 0 !important;
+                margin: 0 !important;
+            }
+            .mobile-card-grid {
+                display: table-row-group !important;
+            }
+            .print-break-avoid {
+                break-inside: avoid;
+            }
+            input {
+                border: none !important;
+                background: transparent !important;
+                padding: 0 !important;
+            }
+            .no-print-border {
+                border: none !important;
+            }
+        }
+    </style>
+</head>
+<body class="font-sans antialiased text-slate-800 bg-slate-100 min-h-full flex flex-col justify-between p-2 sm:p-4 md:p-8">
+
+    <!-- Top Floating Mobile Control Panel -->
+    <header class="no-print max-w-3xl mx-auto w-full mb-3 sm:mb-6 bg-white/90 backdrop-blur-md sticky top-2 z-50 p-3 sm:p-4 rounded-2xl shadow-lg border border-slate-200/80">
+        <div class="flex flex-col gap-3">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-brand-600 text-white flex items-center justify-center font-bold text-lg shadow-sm">
+                        <i class="fa-solid fa-glasses"></i>
+                    </div>
+                    <div>
+                        <h1 class="font-extrabold text-slate-900 text-sm sm:text-base leading-tight">Optik Vision+</h1>
+                        <p class="text-[11px] text-slate-500">Invoice & Resep Lensa</p>
+                    </div>
+                </div>
+
+                <!-- Status Badge Toggle Button -->
+                <button onclick="togglePaymentStatus()" id="statusToggleBtn" type="button" class="min-h-[40px] px-3 py-1.5 rounded-xl font-bold text-xs flex items-center gap-1.5 transition-all shadow-sm active:scale-95 bg-emerald-100 text-emerald-800 border border-emerald-300">
+                    <i class="fa-solid fa-circle-check text-emerald-600" id="statusIcon"></i>
+                    <span id="statusText">LUNAS</span>
+                </button>
+            </div>
+
+            <!-- Action Buttons Grid (Optimized Touch Targets > 44px) -->
+            <div class="grid grid-cols-3 gap-2 pt-1 border-t border-slate-100">
+                <button onclick="toggleEditMode()" id="editModeBtn" type="button" class="min-h-[44px] px-2 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs rounded-xl flex items-center justify-center gap-1.5 transition-all active:scale-95">
+                    <i class="fa-solid fa-pen-to-square text-brand-600"></i>
+                    <span id="editBtnLabel">Ubah Data</span>
+                </button>
+                <button onclick="resetToDefaults()" type="button" class="min-h-[44px] px-2 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs rounded-xl flex items-center justify-center gap-1.5 transition-all active:scale-95">
+                    <i class="fa-solid fa-arrow-rotate-left text-amber-600"></i>
+                    <span>Reset</span>
+                </button>
+                <button onclick="window.print()" type="button" class="min-h-[44px] px-2 py-2 bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs rounded-xl flex items-center justify-center gap-1.5 shadow-md shadow-brand-500/20 active:scale-95 transition-all">
+                    <i class="fa-solid fa-print"></i>
+                    <span>Cetak PDF</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Invoice Card -->
+    <main class="max-w-3xl mx-auto w-full bg-white rounded-2xl shadow-xl border border-slate-200/80 overflow-hidden print-card">
+        
+        <!-- Header Banner -->
+        <div class="p-4 sm:p-6 bg-slate-900 text-white relative overflow-hidden">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 relative z-10">
+                <div class="flex items-center gap-3">
+                    <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-brand-600 to-cyan-400 flex items-center justify-center font-black text-2xl text-white shadow-lg">
+                        <i class="fa-solid fa-eye"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-xl font-black tracking-tight text-white flex items-center gap-2">
+                            OPTIK <span class="text-brand-500">VISION+</span>
+                        </h2>
+                        <p class="text-xs text-slate-400">Pusat Lensa Presisi & Upgrade Kacamata</p>
+                    </div>
+                </div>
+
+                <div class="text-xs text-slate-300 space-y-1 w-full sm:w-auto pt-3 sm:pt-0 border-t sm:border-0 border-slate-800">
+                    <p class="flex items-center gap-2"><i class="fa-solid fa-location-dot text-brand-500 w-4"></i> Jl. Ahmad Yani No. 123, Surabaya</p>
+                    <p class="flex items-center gap-2"><i class="fa-solid fa-phone text-brand-500 w-4"></i> WA: 0812-3456-7890</p>
+                    <p class="flex items-center gap-2"><i class="fa-solid fa-globe text-brand-500 w-4"></i> www.optikvisionplus.com</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Meta Info & Customer Details -->
+        <div class="p-4 sm:p-6 bg-slate-50/70 border-b border-slate-200">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                
+                <!-- Customer Info -->
+                <div class="space-y-2 bg-white p-3.5 rounded-xl border border-slate-200/80 shadow-sm">
+                    <span class="text-[10px] font-extrabold text-brand-600 tracking-wider uppercase block">Pelanggan / Pasien</span>
+                    <div class="space-y-1 text-xs">
+                        <div class="flex items-center gap-2 font-bold text-slate-900 text-sm sm:text-base">
+                            <i class="fa-solid fa-user text-slate-400 text-xs"></i>
+                            <input type="text" id="custName" class="editable-field w-full bg-transparent focus:bg-amber-50 focus:outline-none rounded px-1" value="Bpk. Ahmad Rizky">
+                        </div>
+                        <div class="flex items-center gap-2 text-slate-600">
+                            <i class="fa-solid fa-phone text-slate-400 text-xs"></i>
+                            <input type="text" id="custPhone" class="editable-field w-full bg-transparent focus:bg-amber-50 focus:outline-none rounded px-1" value="0819-8765-4321">
+                        </div>
+                        <div class="flex items-center gap-2 text-slate-600">
+                            <i class="fa-solid fa-map-marker-alt text-slate-400 text-xs"></i>
+                            <input type="text" id="custAddress" class="editable-field w-full bg-transparent focus:bg-amber-50 focus:outline-none rounded px-1" value="Surabaya, Jawa Timur">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Invoice Details -->
+                <div class="space-y-2 bg-white p-3.5 rounded-xl border border-slate-200/80 shadow-sm text-xs">
+                    <span class="text-[10px] font-extrabold text-slate-500 tracking-wider uppercase block">Informasi Transaksi</span>
+                    <div class="space-y-1.5">
+                        <div class="flex justify-between items-center">
+                            <span class="text-slate-500">No. Faktur:</span>
+                            <input type="text" id="invNum" class="editable-field font-mono font-bold text-slate-800 text-right bg-transparent focus:bg-amber-50 focus:outline-none rounded px-1" value="INV/OPT/2026/1089">
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-slate-500">Tanggal Order:</span>
+                            <input type="text" id="invDate" class="editable-field text-slate-800 text-right bg-transparent focus:bg-amber-50 focus:outline-none rounded px-1" value="9 Oktober 2026">
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-slate-500">Pemeriksa / RO:</span>
+                            <input type="text" id="optometrist" class="editable-field text-slate-800 text-right bg-transparent focus:bg-amber-50 focus:outline-none rounded px-1" value="Rian, A.Md.RO">
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Prescription Matrix (Resep Mata OD / OS) -->
+        <div class="p-4 sm:p-6 border-b border-slate-200">
+            <div class="flex items-center justify-between mb-3">
+                <h3 class="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
+                    <i class="fa-solid fa-notes-medical text-brand-600"></i> Resep Lensa Refraksi
+                </h3>
+                <span class="text-[10px] font-semibold bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full">Sferis / Silinder / Axis</span>
+            </div>
+
+            <!-- Mobile-Friendly Resep Card Stack (Visible on small screens) -->
+            <div class="block sm:hidden space-y-3">
+                <!-- OD (Kanan) Mobile Card -->
+                <div class="p-3 bg-brand-50/50 rounded-xl border border-brand-100 space-y-2">
+                    <div class="flex justify-between items-center border-b border-brand-100 pb-1.5">
+                        <span class="font-black text-xs text-brand-700">OD (Mata Kanan)</span>
+                        <span class="text-[10px] text-slate-500">PD: <input type="text" class="w-12 text-center font-bold bg-white rounded border border-slate-200" value="32 mm"></span>
+                    </div>
+                    <div class="grid grid-cols-3 gap-2 text-center text-xs">
+                        <div class="bg-white p-1.5 rounded border border-slate-200">
+                            <span class="text-[10px] text-slate-400 block font-semibold">SPH</span>
+                            <input type="text" class="w-full text-center font-mono font-bold text-slate-800 focus:outline-none" value="-2.25">
+                        </div>
+                        <div class="bg-white p-1.5 rounded border border-slate-200">
+                            <span class="text-[10px] text-slate-400 block font-semibold">CYL</span>
+                            <input type="text" class="w-full text-center font-mono font-bold text-slate-800 focus:outline-none" value="-0.50">
+                        </div>
+                        <div class="bg-white p-1.5 rounded border border-slate-200">
+                            <span class="text-[10px] text-slate-400 block font-semibold">AXIS</span>
+                            <input type="text" class="w-full text-center font-mono font-bold text-slate-800 focus:outline-none" value="90°">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- OS (Kiri) Mobile Card -->
+                <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
+                    <div class="flex justify-between items-center border-b border-slate-200 pb-1.5">
+                        <span class="font-black text-xs text-slate-800">OS (Mata Kiri)</span>
+                        <span class="text-[10px] text-slate-500">PD: <input type="text" class="w-12 text-center font-bold bg-white rounded border border-slate-200" value="32 mm"></span>
+                    </div>
+                    <div class="grid grid-cols-3 gap-2 text-center text-xs">
+                        <div class="bg-white p-1.5 rounded border border-slate-200">
+                            <span class="text-[10px] text-slate-400 block font-semibold">SPH</span>
+                            <input type="text" class="w-full text-center font-mono font-bold text-slate-800 focus:outline-none" value="-2.00">
+                        </div>
+                        <div class="bg-white p-1.5 rounded border border-slate-200">
+                            <span class="text-[10px] text-slate-400 block font-semibold">CYL</span>
+                            <input type="text" class="w-full text-center font-mono font-bold text-slate-800 focus:outline-none" value="-0.75">
+                        </div>
+                        <div class="bg-white p-1.5 rounded border border-slate-200">
+                            <span class="text-[10px] text-slate-400 block font-semibold">AXIS</span>
+                            <input type="text" class="w-full text-center font-mono font-bold text-slate-800 focus:outline-none" value="180°">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Desktop / Print Resep Table -->
+            <div class="hidden sm:block overflow-x-auto">
+                <table class="w-full text-center text-xs border border-slate-200 rounded-xl overflow-hidden">
+                    <thead class="bg-slate-100 text-slate-700 font-bold">
+                        <tr>
+                            <th class="p-2 border-r border-slate-200">Mata</th>
+                            <th class="p-2 border-r border-slate-200">Sph (Sferis)</th>
+                            <th class="p-2 border-r border-slate-200">Cyl (Silinder)</th>
+                            <th class="p-2 border-r border-slate-200">Axis (Sumbu)</th>
+                            <th class="p-2">PD (Pupil Distance)</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-200 font-mono text-slate-800">
+                        <tr>
+                            <td class="p-2 font-bold bg-slate-50 border-r border-slate-200">OD (Kanan)</td>
+                            <td class="p-1.5 border-r border-slate-200"><input type="text" class="w-full text-center focus:outline-none font-bold" value="-2.25"></td>
+                            <td class="p-1.5 border-r border-slate-200"><input type="text" class="w-full text-center focus:outline-none font-bold" value="-0.50"></td>
+                            <td class="p-1.5 border-r border-slate-200"><input type="text" class="w-full text-center focus:outline-none font-bold" value="90°"></td>
+                            <td class="p-1.5" rowspan="2"><input type="text" class="w-full text-center focus:outline-none font-bold text-slate-900" value="64 mm (32/32)"></td>
+                        </tr>
+                        <tr>
+                            <td class="p-2 font-bold bg-slate-50 border-r border-slate-200">OS (Kiri)</td>
+                            <td class="p-1.5 border-r border-slate-200"><input type="text" class="w-full text-center focus:outline-none font-bold" value="-2.00"></td>
+                            <td class="p-1.5 border-r border-slate-200"><input type="text" class="w-full text-center focus:outline-none font-bold" value="-0.75"></td>
+                            <td class="p-1.5 border-r border-slate-200"><input type="text" class="w-full text-center focus:outline-none font-bold" value="180°"></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Order Items Section -->
+        <div class="p-4 sm:p-6">
+            <div class="flex items-center justify-between mb-3">
+                <h3 class="text-xs font-bold text-slate-900 uppercase tracking-wider">
+                    Detail Frame & Upgrade Lensa
+                </h3>
+                <button onclick="addNewRow()" type="button" class="no-print min-h-[36px] px-3 py-1 bg-brand-50 hover:bg-brand-100 text-brand-700 font-bold text-xs rounded-lg flex items-center gap-1 transition-all">
+                    <i class="fa-solid fa-plus-circle"></i> Tambah Item
+                </button>
+            </div>
+
+            <!-- Dynamic Items Container -->
+            <div id="itemsContainer" class="space-y-3">
+                <!-- Row 1: Frame -->
+                <div class="item-row p-3 rounded-xl border border-slate-200 bg-white hover:border-slate-300 transition-all flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                    <div class="flex-1 w-full space-y-1">
+                        <input type="text" class="item-name font-bold text-slate-800 text-xs sm:text-sm w-full bg-transparent focus:bg-amber-50 focus:outline-none rounded" value="Frame Kacamata Titanium Urban Flex">
+                        <input type="text" class="item-desc text-[11px] text-slate-500 w-full bg-transparent focus:bg-amber-50 focus:outline-none rounded" value="Model: UF-8092 Matte Black (Ringan & Anti Karat)">
+                    </div>
+                    <div class="flex items-center justify-between w-full sm:w-auto gap-3 pt-2 sm:pt-0 border-t sm:border-0 border-slate-100">
+                        <div class="flex items-center gap-1.5 text-xs text-slate-500">
+                            <span>Qty:</span>
+                            <input type="number" min="1" class="item-qty w-12 text-center font-bold bg-slate-100 rounded border border-slate-200 py-1" value="1" onchange="calculateTotals()">
+                        </div>
+                        <div class="text-right">
+                            <span class="text-[10px] text-slate-400 block sm:hidden">Harga</span>
+                            <input type="number" class="item-price w-24 text-right font-mono font-semibold text-xs bg-slate-100 rounded border border-slate-200 py-1 px-1.5" value="850000" onchange="calculateTotals()">
+                        </div>
+                        <div class="text-right min-w-[90px]">
+                            <span class="text-[10px] text-slate-400 block sm:hidden">Total</span>
+                            <span class="item-total font-mono font-extrabold text-xs text-slate-900">Rp 850.000</span>
+                        </div>
+                        <button onclick="removeRow(this)" type="button" class="no-print min-w-[32px] h-8 text-slate-400 hover:text-red-500 flex items-center justify-center transition-colors">
+                            <i class="fa-solid fa-trash-can"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Row 2: Upgrade Photochromic -->
+                <div class="item-row p-3 rounded-xl border border-amber-200/80 bg-amber-50/30 hover:border-amber-300 transition-all flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                    <div class="flex-1 w-full space-y-1">
+                        <div class="flex items-center gap-2">
+                            <input type="text" class="item-name font-bold text-slate-800 text-xs sm:text-sm w-full bg-transparent focus:bg-amber-100 focus:outline-none rounded" value="Upgrade Lensa Photochromic Adaptive">
+                            <span class="shrink-0 text-[9px] bg-amber-100 text-amber-800 font-extrabold px-2 py-0.5 rounded-full border border-amber-200"><i class="fa-solid fa-sun"></i> UV TRANSITION</span>
+                        </div>
+                        <input type="text" class="item-desc text-[11px] text-slate-500 w-full bg-transparent focus:bg-amber-100 focus:outline-none rounded" value="Berubah gelap otomatis saat terkena sinar UV outdoor (Index 1.56)">
+                    </div>
+                    <div class="flex items-center justify-between w-full sm:w-auto gap-3 pt-2 sm:pt-0 border-t sm:border-0 border-amber-100">
+                        <div class="flex items-center gap-1.5 text-xs text-slate-500">
+                            <span>Qty:</span>
+                            <input type="number" min="1" class="item-qty w-12 text-center font-bold bg-white rounded border border-slate-200 py-1" value="1" onchange="calculateTotals()">
+                        </div>
+                        <div class="text-right">
+                            <span class="text-[10px] text-slate-400 block sm:hidden">Harga</span>
+                            <input type="number" class="item-price w-24 text-right font-mono font-semibold text-xs bg-white rounded border border-slate-200 py-1 px-1.5" value="450000" onchange="calculateTotals()">
+                        </div>
+                        <div class="text-right min-w-[90px]">
+                            <span class="text-[10px] text-slate-400 block sm:hidden">Total</span>
+                            <span class="item-total font-mono font-extrabold text-xs text-slate-900">Rp 450.000</span>
+                        </div>
+                        <button onclick="removeRow(this)" type="button" class="no-print min-w-[32px] h-8 text-slate-400 hover:text-red-500 flex items-center justify-center transition-colors">
+                            <i class="fa-solid fa-trash-can"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Row 3: Upgrade Night Drive -->
+                <div class="item-row p-3 rounded-xl border border-indigo-200/80 bg-indigo-50/30 hover:border-indigo-300 transition-all flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                    <div class="flex-1 w-full space-y-1">
+                        <div class="flex items-center gap-2">
+                            <input type="text" class="item-name font-bold text-slate-800 text-xs sm:text-sm w-full bg-transparent focus:bg-indigo-100 focus:outline-none rounded" value="Upgrade Coating Night Drive (Night Vision)">
+                            <span class="shrink-0 text-[9px] bg-indigo-100 text-indigo-800 font-extrabold px-2 py-0.5 rounded-full border border-indigo-200"><i class="fa-solid fa-moon"></i> ANTI-SILAU</span>
+                        </div>
+                        <input type="text" class="item-desc text-[11px] text-slate-500 w-full bg-transparent focus:bg-indigo-100 focus:outline-none rounded" value="Lapisan anti-glare khusus meredam pantulan lampu kendaraan saat berkendara malam">
+                    </div>
+                    <div class="flex items-center justify-between w-full sm:w-auto gap-3 pt-2 sm:pt-0 border-t sm:border-0 border-indigo-100">
+                        <div class="flex items-center gap-1.5 text-xs text-slate-500">
+                            <span>Qty:</span>
+                            <input type="number" min="1" class="item-qty w-12 text-center font-bold bg-white rounded border border-slate-200 py-1" value="1" onchange="calculateTotals()">
+                        </div>
+                        <div class="text-right">
+                            <span class="text-[10px] text-slate-400 block sm:hidden">Harga</span>
+                            <input type="number" class="item-price w-24 text-right font-mono font-semibold text-xs bg-white rounded border border-slate-200 py-1 px-1.5" value="350000" onchange="calculateTotals()">
+                        </div>
+                        <div class="text-right min-w-[90px]">
+                            <span class="text-[10px] text-slate-400 block sm:hidden">Total</span>
+                            <span class="item-total font-mono font-extrabold text-xs text-slate-900">Rp 350.000</span>
+                        </div>
+                        <button onclick="removeRow(this)" type="button" class="no-print min-w-[32px] h-8 text-slate-400 hover:text-red-500 flex items-center justify-center transition-colors">
+                            <i class="fa-solid fa-trash-can"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Row 4: Accessories -->
+                <div class="item-row p-3 rounded-xl border border-slate-200 bg-white hover:border-slate-300 transition-all flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                    <div class="flex-1 w-full space-y-1">
+                        <input type="text" class="item-name font-bold text-slate-800 text-xs sm:text-sm w-full bg-transparent focus:bg-amber-50 focus:outline-none rounded" value="Kit Pembersih Lensa & Hardcase Optik">
+                        <input type="text" class="item-desc text-[11px] text-slate-500 w-full bg-transparent focus:bg-amber-50 focus:outline-none rounded" value="Spray pembersih anti-static + Kain microfiber halus">
+                    </div>
+                    <div class="flex items-center justify-between w-full sm:w-auto gap-3 pt-2 sm:pt-0 border-t sm:border-0 border-slate-100">
+                        <div class="flex items-center gap-1.5 text-xs text-slate-500">
+                            <span>Qty:</span>
+                            <input type="number" min="1" class="item-qty w-12 text-center font-bold bg-slate-100 rounded border border-slate-200 py-1" value="1" onchange="calculateTotals()">
+                        </div>
+                        <div class="text-right">
+                            <span class="text-[10px] text-slate-400 block sm:hidden">Harga</span>
+                            <input type="number" class="item-price w-24 text-right font-mono font-semibold text-xs bg-slate-100 rounded border border-slate-200 py-1 px-1.5" value="50000" onchange="calculateTotals()">
+                        </div>
+                        <div class="text-right min-w-[90px]">
+                            <span class="text-[10px] text-slate-400 block sm:hidden">Total</span>
+                            <span class="item-total font-mono font-extrabold text-xs text-slate-900">Rp 50.000</span>
+                        </div>
+                        <button onclick="removeRow(this)" type="button" class="no-print min-w-[32px] h-8 text-slate-400 hover:text-red-500 flex items-center justify-center transition-colors">
+                            <i class="fa-solid fa-trash-can"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Total Calculation Summary Breakdown -->
+            <div class="mt-6 border-t border-slate-200 pt-4 flex flex-col md:flex-row justify-between items-start gap-4 print-break-avoid">
+                <div class="w-full md:w-1/2 space-y-2">
+                    <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs text-slate-600 space-y-1">
+                        <span class="font-extrabold text-slate-800 uppercase text-[10px] tracking-wider block mb-1">
+                            <i class="fa-solid fa-credit-card text-brand-600"></i> Informasi Pembayaran
+                        </span>
+                        <p><strong>BCA:</strong> 123-456-7890 a.n OPTIK VISION PLUS</p>
+                        <p><strong>QRIS:</strong> Scan di kasir / via WhatsApp</p>
+                    </div>
+                </div>
+
+                <div class="w-full md:w-5/12 space-y-2 text-xs font-semibold">
+                    <div class="flex justify-between text-slate-600">
+                        <span>Subtotal</span>
+                        <span id="subtotalVal" class="font-mono">Rp 1.700.000</span>
+                    </div>
+
+                    <div class="flex justify-between items-center text-emerald-600">
+                        <span>Diskon Promo</span>
+                        <div class="flex items-center gap-1">
+                            <span>- Rp</span>
+                            <input type="number" id="discountInput" class="w-20 text-right font-mono bg-emerald-50 rounded border border-emerald-200 py-0.5 px-1 text-emerald-700 font-bold" value="100000" onchange="calculateTotals()">
+                        </div>
+                    </div>
+
+                    <div class="flex justify-between text-slate-600">
+                        <span>PPN (11%)</span>
+                        <span id="taxVal" class="font-mono">Rp 176.000</span>
+                    </div>
+
+                    <div class="flex justify-between text-slate-900 font-black text-base border-t-2 border-slate-200 pt-2 mt-1">
+                        <span>Total Akhir</span>
+                        <span id="grandTotalVal" class="font-mono text-brand-600">Rp 1.776.000</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Warranty & Footer Terms -->
+        <div class="p-4 sm:p-6 bg-slate-50 border-t border-slate-200 text-[11px] text-slate-500 space-y-2 print-break-avoid">
+            <h4 class="font-bold text-slate-700 uppercase tracking-wider text-[10px] flex items-center gap-1">
+                <i class="fa-solid fa-shield-halved text-brand-600"></i> Ketentuan Garansi Resmi Optik
+            </h4>
+            <ul class="list-disc list-inside space-y-0.5 text-slate-600">
+                <li><strong>Resep Refraksi:</strong> Garansi kenyamanan adaptasi fokus lensa selama 30 hari.</li>
+                <li><strong>Coating Lensa:</strong> Garansi mengelupas lapisan Photochromic & Night Drive 12 bulan.</li>
+            </ul>
+
+            <div class="pt-3 border-t border-slate-200/80 flex flex-col sm:flex-row justify-between items-center gap-1 text-[10px] text-slate-400 text-center sm:text-left">
+                <p>© 2026 Optik Vision+. Terima kasih atas kunjungan Anda!</p>
+                <p class="font-mono">Faktur dibuat secara digital</p>
+            </div>
+        </div>
+
+    </main>
+
+    <footer class="no-print max-w-3xl mx-auto w-full text-center py-4 text-xs text-slate-400">
+        Optik Vision+ Mobile Invoice App &bull; Siap di-host di GitHub Pages
+    </footer>
+
+    <script>
+        let paymentState = 0; // 0: LUNAS, 1: BELUM LUNAS, 2: DP / UANG MUKA
+        let isEditMode = false;
+
+        // Toggle Payment Status Badge
+        function togglePaymentStatus() {
+            const btn = document.getElementById('statusToggleBtn');
+            const icon = document.getElementById('statusIcon');
+            const text = document.getElementById('statusText');
+
+            paymentState = (paymentState + 1) % 3;
+
+            if (paymentState === 0) {
+                btn.className = "min-h-[40px] px-3 py-1.5 rounded-xl font-bold text-xs flex items-center gap-1.5 transition-all shadow-sm active:scale-95 bg-emerald-100 text-emerald-800 border border-emerald-300";
+                icon.className = "fa-solid fa-circle-check text-emerald-600";
+                text.innerText = "LUNAS";
+            } else if (paymentState === 1) {
+                btn.className = "min-h-[40px] px-3 py-1.5 rounded-xl font-bold text-xs flex items-center gap-1.5 transition-all shadow-sm active:scale-95 bg-rose-100 text-rose-800 border border-rose-300";
+                icon.className = "fa-solid fa-circle-xmark text-rose-600";
+                text.innerText = "BELUM LUNAS";
+            } else {
+                btn.className = "min-h-[40px] px-3 py-1.5 rounded-xl font-bold text-xs flex items-center gap-1.5 transition-all shadow-sm active:scale-95 bg-amber-100 text-amber-800 border border-amber-300";
+                icon.className = "fa-solid fa-clock text-amber-600";
+                text.innerText = "DP / UANG MUKA";
+            }
+        }
+
+        // Toggle Editing Visual Cue Mode
+        function toggleEditMode() {
+            isEditMode = !isEditMode;
+            const btnLabel = document.getElementById('editBtnLabel');
+            const fields = document.querySelectorAll('.editable-field');
+
+            if (isEditMode) {
+                btnLabel.innerText = "Selesai";
+                fields.forEach(f => f.classList.add('bg-amber-100', 'ring-1', 'ring-amber-400'));
+            } else {
+                btnLabel.innerText = "Ubah Data";
+                fields.forEach(f => f.classList.remove('bg-amber-100', 'ring-1', 'ring-amber-400'));
+            }
+        }
+
+        // Add new line item row dynamically
+        function addNewRow() {
+            const container = document.getElementById('itemsContainer');
+            const div = document.createElement('div');
+            div.className = "item-row p-3 rounded-xl border border-slate-200 bg-white hover:border-slate-300 transition-all flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3";
+            div.innerHTML = `
+                <div class="flex-1 w-full space-y-1">
+                    <input type="text" class="item-name font-bold text-slate-800 text-xs sm:text-sm w-full bg-transparent focus:bg-amber-50 focus:outline-none rounded" placeholder="Nama Produk / Lensa">
+                    <input type="text" class="item-desc text-[11px] text-slate-500 w-full bg-transparent focus:bg-amber-50 focus:outline-none rounded" placeholder="Keterangan tambahan">
+                </div>
+                <div class="flex items-center justify-between w-full sm:w-auto gap-3 pt-2 sm:pt-0 border-t sm:border-0 border-slate-100">
+                    <div class="flex items-center gap-1.5 text-xs text-slate-500">
+                        <span>Qty:</span>
+                        <input type="number" min="1" class="item-qty w-12 text-center font-bold bg-slate-100 rounded border border-slate-200 py-1" value="1" onchange="calculateTotals()">
+                    </div>
+                    <div class="text-right">
+                        <span class="text-[10px] text-slate-400 block sm:hidden">Harga</span>
+                        <input type="number" class="item-price w-24 text-right font-mono font-semibold text-xs bg-slate-100 rounded border border-slate-200 py-1 px-1.5" value="0" onchange="calculateTotals()">
+                    </div>
+                    <div class="text-right min-w-[90px]">
+                        <span class="text-[10px] text-slate-400 block sm:hidden">Total</span>
+                        <span class="item-total font-mono font-extrabold text-xs text-slate-900">Rp 0</span>
+                    </div>
+                    <button onclick="removeRow(this)" type="button" class="no-print min-w-[32px] h-8 text-slate-400 hover:text-red-500 flex items-center justify-center transition-colors">
+                        <i class="fa-solid fa-trash-can"></i>
+                    </button>
+                </div>
+            `;
+            container.appendChild(div);
+            calculateTotals();
+        }
+
+        // Delete Row
+        function removeRow(btn) {
+            const row = btn.closest('.item-row');
+            if (document.querySelectorAll('.item-row').length > 1) {
+                row.remove();
+                calculateTotals();
+            }
+        }
+
+        // Format Currency Helper
+        function formatRupiah(num) {
+            return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(num);
+        }
+
+        // Automatic Math Recalculation
+        function calculateTotals() {
+            const rows = document.querySelectorAll('.item-row');
+            let subtotal = 0;
+
+            rows.forEach(row => {
+                const qtyInput = row.querySelector('.item-qty');
+                const priceInput = row.querySelector('.item-price');
+                const totalEl = row.querySelector('.item-total');
+
+                const qty = parseFloat(qtyInput ? qtyInput.value : 0) || 0;
+                const price = parseFloat(priceInput ? priceInput.value : 0) || 0;
+                const rowTotal = qty * price;
+
+                subtotal += rowTotal;
+                if (totalEl) totalEl.innerText = formatRupiah(rowTotal);
+            });
+
+            const discountInput = document.getElementById('discountInput');
+            const discount = parseFloat(discountInput ? discountInput.value : 0) || 0;
+
+            const taxableAmount = Math.max(0, subtotal - discount);
+            const tax = taxableAmount * 0.11; // PPN 11%
+            const grandTotal = taxableAmount + tax;
+
+            document.getElementById('subtotalVal').innerText = formatRupiah(subtotal);
+            document.getElementById('taxVal').innerText = formatRupiah(tax);
+            document.getElementById('grandTotalVal').innerText = formatRupiah(grandTotal);
+        }
+
+        // Reset inputs to standard default values
+        function resetToDefaults() {
+            if (confirm("Apakah Anda yakin ingin mengembalikan data ke format awal?")) {
+                window.location.reload();
+            }
+        }
+
+        // Run calculation on page load
+        window.onload = function() {
+            calculateTotals();
+        };
+    </script>
+</body>
+</html>
